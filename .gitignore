@@ -5,3 +5,4 @@ project/boot/
 *.iml
 *.ipr
 *.iws
+src/main/resources/auth.properties
