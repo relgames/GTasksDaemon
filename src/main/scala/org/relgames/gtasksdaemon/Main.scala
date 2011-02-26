@@ -1,19 +1,12 @@
 package org.relgames.gtasksdaemon
 
 import java.util.Properties
-import org.slf4j.LoggerFactory
-import scala.compat.Platform.currentTime
-import org.apache.http.impl.client.{BasicResponseHandler, DefaultHttpClient}
-import org.apache.http.message.BasicNameValuePair
 import collection.JavaConversions._
-import org.apache.http.client.methods.{HttpPost, HttpGet}
-import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.protocol.HTTP
-import org.apache.http.client.HttpResponseException
-
-trait Logging {
-  val log = LoggerFactory.getLogger(this.getClass)
-}
+import java.net.{CookieManager, URL, CookieHandler}
+import utils.Logging
+import utils.EncodableMap._
+import io.Source
+import java.io.OutputStreamWriter
 
 object Main extends Logging {
   val authProps = new Properties()
@@ -22,35 +15,54 @@ object Main extends Logging {
   val username = authProps.getProperty("username")
   val password = authProps.getProperty("password")
 
-  val httpClient = new DefaultHttpClient()
-  val toStringResponseHandler = new BasicResponseHandler()
+  val loginUrl = "https://www.google.com/accounts/ServiceLogin"
+  val authUrl = "https://www.google.com/accounts/ServiceLoginAuth"
+  val tasksUrl = "https://mail.google.com/tasks/m"
+
+  val cookieManager = new CookieManager()
+  CookieHandler.setDefault(cookieManager);
 
   def login():Unit = {
+    log.info("Logging in...")
     log.info("Username is {}", username)
 
-    val response = httpClient.execute(new HttpGet("https://www.google.com/accounts/ServiceLogin"), toStringResponseHandler)
+    var response = Source.fromURL(loginUrl).mkString
+    log.debug("Login page:\n{}", response)
 
-    val cookies =  httpClient.getCookieStore.getCookies
-    log.info("Cookies: {}", cookies)
+    log.info("Cookies: {}", cookieManager.getCookieStore.getCookies)
 
-    val galx = httpClient.getCookieStore.getCookies.find(_.getName=="GALX").getOrElse{
-      log.error("Can't find cookie, response: {}", response)
+    val galx = cookieManager.getCookieStore.getCookies.find(_.getName=="GALX").getOrElse{
+      log.error("Can't find cookie, response:\n{}", response)
       throw new RuntimeException("Can't find cookie")
     }.getValue
 
     log.info("GALX = {}", galx)
 
-    val loginParams = List(
-      new BasicNameValuePair("Email", username),
-      new BasicNameValuePair("Passwd", password),
-      new BasicNameValuePair("continue", "https://mail.google.com/tasks/m"),
-      new BasicNameValuePair("GALX", galx)
-    )
+    val loginParams = Map(
+      "Email" -> username,
+      "Passwd" -> password,
+      "continue" -> tasksUrl,
+      "GALX" -> galx
+    ).urlEncode
 
-    val httpPost = new HttpPost("https://www.google.com/accounts/ServiceLoginAuth")
-    httpPost.setEntity(new UrlEncodedFormEntity(loginParams, HTTP.UTF_8))
 
-    httpClient.execute(httpPost)
+    val postConnection = new URL(authUrl).openConnection
+    postConnection.setDoOutput(true)
+
+    val writer = new OutputStreamWriter(postConnection.getOutputStream)
+    writer.write(loginParams)
+    writer.flush
+
+    response = Source.fromInputStream(postConnection.getInputStream).mkString
+    log.debug("Auth content:\n{}", response)
+
+    log.info("Cookies: {}", cookieManager.getCookieStore.getCookies)
+    if (cookieManager.getCookieStore.getCookies.length<2) {
+      log.error("Login failed! Response:\n{}", response)
+      throw new RuntimeException("Login failed")
+    }
+
+    log.info("Logged in")
   }
 
   def process():Unit = {
@@ -61,6 +73,6 @@ object Main extends Logging {
     log.info("Done")
   }
 
-  def main(args: Array[String]) = process
+  def main(args: Array[String]):Unit = process
 
 }

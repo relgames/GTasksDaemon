@@ -19,11 +19,13 @@
 
 
     <dependencies>
+        <!--
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.1</version>
         </dependency>
+        -->
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -41,6 +43,7 @@
             <version>${logback.version}</version>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
@@ -58,6 +61,7 @@
             <version>99.0-does-not-exist</version>
             <scope>provided</scope>
         </dependency>
+        -->
 
         <dependency>
             <groupId>org.scala-lang</groupId>
