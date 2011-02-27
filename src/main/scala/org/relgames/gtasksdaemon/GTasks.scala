@@ -2,11 +2,9 @@ package org.relgames.gtasksdaemon
 
 import java.util.Properties
 import collection.JavaConversions._
-import java.net.{CookieManager, URL, CookieHandler}
-import utils.EncodableMap._
+import java.net.{CookieManager, CookieHandler}
 import io.Source
-import java.io.OutputStreamWriter
-import utils.{DTDFix, Logging}
+import utils.{Http, DTDFix, Logging}
 import xml.XML
 
 object GTasks extends Logging {
@@ -40,22 +38,13 @@ object GTasks extends Logging {
 
     log.info("GALX = {}", galx)
 
-    val loginParams = Map(
+    response = Http.post(authUrl, Map(
       "Email" -> username,
       "Passwd" -> password,
       "continue" -> tasksUrl,
       "GALX" -> galx
-    ).urlEncode
+    ))
 
-
-    val postConnection = new URL(authUrl).openConnection
-    postConnection.setDoOutput(true)
-
-    val writer = new OutputStreamWriter(postConnection.getOutputStream)
-    writer.write(loginParams)
-    writer.flush
-
-    response = Source.fromInputStream(postConnection.getInputStream).mkString
     log.debug("Auth content:\n{}", response)
 
     log.info("Cookies: {}", cookieManager.getCookieStore.getCookies)
@@ -87,6 +76,10 @@ object GTasks extends Logging {
     val nodes = (tasksXml\\"td").filter(el => (el\"@class").text == "text").map(_.text).filter(_.length>0)
 
     nodes
+  }
+
+  def addTask():Unit = {
+
   }
 
 }

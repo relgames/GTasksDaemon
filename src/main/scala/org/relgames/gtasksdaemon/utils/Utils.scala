@@ -1,8 +1,10 @@
 package org.relgames.gtasksdaemon.utils
 
 import org.slf4j.LoggerFactory
-import java.net.URLEncoder
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
+import java.net.{URL, URLEncoder}
+import java.io.OutputStreamWriter
+import io.Source
 
 trait Logging {
   val log = LoggerFactory.getLogger(this.getClass)
@@ -16,6 +18,25 @@ class EncodableMap(m: Map[String, String]) {
 
 object EncodableMap {
   implicit def encodableMap(m: Map[String, String]): EncodableMap = new EncodableMap(m)
+}
+
+object Http {
+  import EncodableMap._
+
+  def post(url: String, params: Map[String, String]): String = {
+    val postConnection = new URL(url).openConnection
+    postConnection.setDoOutput(true)
+
+    val writer = new OutputStreamWriter(postConnection.getOutputStream)
+    writer.write(params.urlEncode)
+    writer.flush
+
+    val result = Source.fromInputStream(postConnection.getInputStream).mkString
+
+    //postConnection.getInputStream.close
+
+    result
+  }
 }
 
 /**
@@ -32,4 +53,5 @@ object DTDFix {
     f.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
     f.newSAXParser()
   }
+
 }
