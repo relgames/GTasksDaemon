@@ -7,7 +7,8 @@ object Main extends Logging {
   def main(args: Array[String]):Unit = {
     log.info("Start")
 
-    login()
+    //login()
+    tasks()
 
     log.info("Done")
   }
