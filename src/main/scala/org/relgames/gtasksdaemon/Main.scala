@@ -1,15 +1,17 @@
 package org.relgames.gtasksdaemon
 
-import GTasks._
-import utils.Logging
+import utils.{Http, Logging}
 
 object Main extends Logging {
   def main(args: Array[String]):Unit = {
     log.info("Start")
 
-    login()
-    val taskList = tasks()
-    log.info("Tasks: {}", taskList)
+    //GTasks.login()
+    //val taskList = tasks()
+    //log.info("Tasks: {}", taskList)
+
+    val res = Http.get("https://www.google.com/accounts/ServiceLogin")
+    log.debug("Cookies:{}\nResponse:\n{}", Http.cookies, res)
 
     log.info("Done")
   }

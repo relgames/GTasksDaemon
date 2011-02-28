@@ -2,38 +2,65 @@ package org.relgames.gtasksdaemon.utils
 
 import org.slf4j.LoggerFactory
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
-import java.net.{URL, URLEncoder}
 import java.io.OutputStreamWriter
 import io.Source
+import java.net.{URLConnection, URL, URLEncoder}
 
 trait Logging {
   val log = LoggerFactory.getLogger(this.getClass)
 }
 
-class EncodableMap(m: Map[String, String]) {
-  def urlEncode: String = {
-    for ((k, v) <- m) yield URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
-  }  mkString "&"
-}
+object Http extends Logging{
+  private class EncodableMap(m: Map[String, String]) {
+    def urlEncode: String = {
+      for ((k, v) <- m) yield URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
+    }  mkString "&"
+  }
 
-object EncodableMap {
-  implicit def encodableMap(m: Map[String, String]): EncodableMap = new EncodableMap(m)
-}
+  private implicit def encodableMap(m: Map[String, String]): EncodableMap = new EncodableMap(m)
 
-object Http {
-  import EncodableMap._
+  def cookies = _cookies
+
+  private var _cookies = Map[String, String]()
+
+  def parseCookie(header: String): (String, String) = {
+    val regexp = """([a-zA-Z0-9]+)=([^;]*);.*""".r
+    val regexp(key, value) = header
+    (key, value)
+  }
+
+  def storeCookies(cookieHeaders: java.util.List[String]): Unit = {
+    if (cookieHeaders!=null) {
+      import collection.JavaConversions._
+      for (s <- cookieHeaders) {
+        _cookies += parseCookie(s)
+      }
+    }
+  }
+
+  def storeCookies(connection: URLConnection): Unit = {
+    storeCookies(connection.getHeaderFields.get("Set-Cookie"))
+    storeCookies(connection.getHeaderFields.get("Set-Cookie2"))
+  }
+
+  def get(url: String): String = {
+    val connection = new URL(url).openConnection
+    connection.setDoOutput(true)
+
+    storeCookies(connection)
+
+    Source.fromInputStream(connection.getInputStream).mkString
+  }
 
   def post(url: String, params: Map[String, String]): String = {
-    val postConnection = new URL(url).openConnection
-    postConnection.setDoOutput(true)
+    val connection = new URL(url).openConnection
+    connection.setDoOutput(true)
 
-    val writer = new OutputStreamWriter(postConnection.getOutputStream)
+    val writer = new OutputStreamWriter(connection.getOutputStream)
     writer.write(params.urlEncode)
     writer.flush
 
-    val result = Source.fromInputStream(postConnection.getInputStream).mkString
-
-    //postConnection.getInputStream.close
+    val result = Source.fromInputStream(connection.getInputStream).mkString
 
     result
   }
