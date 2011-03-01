@@ -6,12 +6,13 @@ object Main extends Logging {
   def main(args: Array[String]):Unit = {
     log.info("Start")
 
-    //GTasks.login()
+    GTasks.login()
     //val taskList = tasks()
     //log.info("Tasks: {}", taskList)
 
-    val res = Http.get("https://www.google.com/accounts/ServiceLogin")
-    log.debug("Cookies:{}\nResponse:\n{}", Http.cookies, res)
+    //Http.cookies = Map("GALX"->"test", "cookie2"->"value2")
+    //val res = Http.post("http://localhost:8090", Map("param1"->"value1", "param2"->"value2"))
+    //log.debug("Cookies:{}\nResponse:\n{}", Http.cookies, res)
 
     log.info("Done")
   }

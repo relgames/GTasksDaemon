@@ -1,9 +1,6 @@
 package org.relgames.gtasksdaemon
 
 import java.util.Properties
-import collection.JavaConversions._
-import java.net.{CookieManager, CookieHandler}
-import io.Source
 import utils.{Http, DTDFix, Logging}
 import xml.XML
 
@@ -18,23 +15,20 @@ object GTasks extends Logging {
   val authUrl = "https://www.google.com/accounts/ServiceLoginAuth"
   val tasksUrl = "https://mail.google.com/tasks/m"
 
-  val cookieManager = new CookieManager()
-  CookieHandler.setDefault(cookieManager);
-
   def login():Unit = {
     log.info("Username is {}", username)
 
-    cookieManager.getCookieStore.removeAll
+    Http.cookies = Map[String, String]()
 
-    var response = Source.fromURL(loginUrl).mkString
+    var response = Http.get(loginUrl)
     log.debug("Login page:\n{}", response)
 
-    log.info("Cookies: {}", cookieManager.getCookieStore.getCookies)
+    log.info("Cookies: {}", Http.cookies)
 
-    val galx = cookieManager.getCookieStore.getCookies.find(_.getName=="GALX").getOrElse{
+    val galx = Http.cookies.find{case (k, v) => k=="GALX"}.getOrElse{
       log.error("Can't find cookie, response:\n{}", response)
       throw new RuntimeException("Can't find cookie")
-    }.getValue
+    }._2
 
     log.info("GALX = {}", galx)
 
@@ -47,8 +41,8 @@ object GTasks extends Logging {
 
     log.debug("Auth content:\n{}", response)
 
-    log.info("Cookies: {}", cookieManager.getCookieStore.getCookies)
-    if (cookieManager.getCookieStore.getCookies.length<2) {
+    log.info("Cookies: {}", Http.cookies)
+    if (Http.cookies.size < 2) {
       log.error("Login failed! Response:\n{}", response)
       throw new RuntimeException("Login failed")
     }
@@ -57,14 +51,14 @@ object GTasks extends Logging {
   }
 
   def tasks():Seq[String] = {
-    var tasksRaw = Source.fromURL(tasksUrl).mkString
+    var tasksRaw = Http.get(tasksUrl)
     log.debug("Tasks response:\n{}", tasksRaw)
 
     if (!tasksRaw.contains("<title>Tasks</title>")) {
       log.info("Page title is not Tasks, trying to login...")
       login()
 
-      tasksRaw = Source.fromURL(tasksUrl).mkString
+      tasksRaw = Http.get(tasksUrl)
       log.debug("Tasks response:\n{}", tasksRaw)
       if (!tasksRaw.contains("<title>Tasks</title>")) {
         log.error("Logged in, but response is wrong:\n{}", tasksRaw)

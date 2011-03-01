@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
 import java.io.OutputStreamWriter
 import io.Source
-import java.net.{URLConnection, URL, URLEncoder}
+import java.net.{HttpURLConnection, URLConnection, URL, URLEncoder}
 
 trait Logging {
   val log = LoggerFactory.getLogger(this.getClass)
@@ -19,9 +19,7 @@ object Http extends Logging{
 
   private implicit def encodableMap(m: Map[String, String]): EncodableMap = new EncodableMap(m)
 
-  def cookies = _cookies
-
-  private var _cookies = Map[String, String]()
+  var cookies = Map[String, String]()
 
   def parseCookie(header: String): (String, String) = {
     val regexp = """([a-zA-Z0-9]+)=([^;]*);.*""".r
@@ -29,37 +27,51 @@ object Http extends Logging{
     (key, value)
   }
 
-  def storeCookies(cookieHeaders: java.util.List[String]): Unit = {
+  def saveCookies(cookieHeaders: java.util.List[String]): Unit = {
     if (cookieHeaders!=null) {
       import collection.JavaConversions._
       for (s <- cookieHeaders) {
-        _cookies += parseCookie(s)
+        cookies += parseCookie(s)
       }
     }
   }
 
-  def storeCookies(connection: URLConnection): Unit = {
-    storeCookies(connection.getHeaderFields.get("Set-Cookie"))
-    storeCookies(connection.getHeaderFields.get("Set-Cookie2"))
+  def saveCookiesFrom(connection: URLConnection): Unit = {
+    saveCookies(connection.getHeaderFields.get("Set-Cookie"))
+    saveCookies(connection.getHeaderFields.get("Set-Cookie2"))
+  }
+
+  def mkCookieHeader(m: Map[String, String]): String = {
+    m.map{ case (k, v) => k + "=" + v }.mkString("; ")
+  }
+
+  def addCookiesTo(connection: URLConnection): Unit = {
+    connection.setDoOutput(true)
+    connection.addRequestProperty("Cookie", mkCookieHeader(cookies))
   }
 
   def get(url: String): String = {
     val connection = new URL(url).openConnection
-    connection.setDoOutput(true)
-
-    storeCookies(connection)
+    addCookiesTo(connection)
+    saveCookiesFrom(connection)
 
     Source.fromInputStream(connection.getInputStream).mkString
   }
 
   def post(url: String, params: Map[String, String]): String = {
-    val connection = new URL(url).openConnection
+    val connection:HttpURLConnection = new URL(url).openConnection match{ case c:HttpURLConnection => c}
     connection.setDoOutput(true)
+    connection.setRequestMethod("POST")
+
+    val query = params.urlEncode
+    connection.setRequestProperty("Content-Length", query.length.toString)
+    addCookiesTo(connection)
 
     val writer = new OutputStreamWriter(connection.getOutputStream)
-    writer.write(params.urlEncode)
+    writer.write(query)
     writer.flush
 
+    saveCookiesFrom(connection)
     val result = Source.fromInputStream(connection.getInputStream).mkString
 
     result
