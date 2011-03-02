@@ -10,7 +10,7 @@ trait Logging {
   val log = LoggerFactory.getLogger(this.getClass)
 }
 
-object Http extends Logging{
+class HttpClient extends Logging{
   private class EncodableMap(m: Map[String, String]) {
     def urlEncode: String = {
       for ((k, v) <- m) yield URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
@@ -22,8 +22,10 @@ object Http extends Logging{
   var cookies = Map[String, String]()
 
   def parseCookie(header: String): (String, String) = {
+    log.debug("Parsing {}", header)
     val regexp = """([a-zA-Z0-9]+)=([^;]*);.*""".r
     val regexp(key, value) = header
+    log.debug("Parsed {}={}", key, value)
     (key, value)
   }
 
@@ -37,8 +39,15 @@ object Http extends Logging{
   }
 
   def saveCookiesFrom(connection: URLConnection): Unit = {
-    saveCookies(connection.getHeaderFields.get("Set-Cookie"))
-    saveCookies(connection.getHeaderFields.get("Set-Cookie2"))
+    import collection.JavaConversions._
+
+    val x2 =  connection.getHeaderFields
+    val x = for ( p <- connection.getHeaderFields) yield (p._1 + ": " + p._2.mkString(", "))
+    log.debug("Headers:\n{}", x.mkString("\n"))
+
+    connection.getHeaderFields.filter{
+      case (name, values) => name.equalsIgnoreCase("Set-Cookie") || name.equalsIgnoreCase("Set-Cookie2")
+    }.values.foreach(saveCookies)
   }
 
   def mkCookieHeader(m: Map[String, String]): String = {
@@ -47,10 +56,13 @@ object Http extends Logging{
 
   def addCookiesTo(connection: URLConnection): Unit = {
     connection.setDoOutput(true)
-    connection.addRequestProperty("Cookie", mkCookieHeader(cookies))
+    val header = mkCookieHeader(cookies)
+    log.debug("Cookie request header: {}", header)
+    connection.addRequestProperty("Cookie", header)
   }
 
   def get(url: String): String = {
+    log.debug("GET {}", url)
     val connection = new URL(url).openConnection
     addCookiesTo(connection)
     saveCookiesFrom(connection)
@@ -59,6 +71,8 @@ object Http extends Logging{
   }
 
   def post(url: String, params: Map[String, String]): String = {
+    log.debug("POST {}", url)
+
     val connection:HttpURLConnection = new URL(url).openConnection match{ case c:HttpURLConnection => c}
     connection.setDoOutput(true)
     connection.setRequestMethod("POST")

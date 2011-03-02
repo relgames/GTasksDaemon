@@ -7,6 +7,7 @@ import utils.Logging
 
 class HelloServlet extends HttpServlet with Logging {
   override def doGet(req: HSReq, resp: HSResp) = {
+    login()
     val taskList = tasks()
     log.info("Tasks: {}", taskList)
 
