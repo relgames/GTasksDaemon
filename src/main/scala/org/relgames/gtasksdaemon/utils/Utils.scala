@@ -46,7 +46,8 @@ class HttpClient extends Logging{
     log.debug("Headers:\n{}", x.mkString("\n"))
 
     connection.getHeaderFields.filter{
-      case (name, values) => name.equalsIgnoreCase("Set-Cookie") || name.equalsIgnoreCase("Set-Cookie2")
+      case (name, values) if (name!=null) => name.equalsIgnoreCase("Set-Cookie") || name.equalsIgnoreCase("Set-Cookie2")
+      case _ => false
     }.values.foreach(saveCookies)
   }
 

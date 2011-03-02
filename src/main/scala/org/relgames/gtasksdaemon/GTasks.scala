@@ -4,7 +4,7 @@ import java.util.Properties
 import utils.{HttpClient, DTDFix, Logging}
 import xml.XML
 
-object GTasks extends Logging {
+class GTasks extends Logging {
   val authProps = new Properties()
   authProps.load(this.getClass.getClassLoader.getResourceAsStream("auth.properties"))
 

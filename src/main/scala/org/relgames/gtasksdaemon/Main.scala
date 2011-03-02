@@ -7,7 +7,7 @@ object Main extends Logging {
     log.info("Start")
 
 
-    GTasks.login()
+    new GTasks().login()
     //val taskList = tasks()
     //log.info("Tasks: {}", taskList)
 
