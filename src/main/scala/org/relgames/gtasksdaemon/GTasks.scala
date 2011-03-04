@@ -1,8 +1,9 @@
 package org.relgames.gtasksdaemon
 
 import java.util.Properties
-import utils.{HttpClient, DTDFix, Logging}
+import utils.{Http, DTDFix, Logging}
 import xml.XML
+import org.apache.http.client.HttpResponseException
 
 class GTasks extends Logging {
   val authProps = new Properties()
@@ -15,35 +16,32 @@ class GTasks extends Logging {
   val authUrl = "https://www.google.com/accounts/ServiceLoginAuth"
   val tasksUrl = "https://mail.google.com/tasks/m"
 
-  val httpClient = new HttpClient
+  val httpClient = new Http
 
   def login():Unit = {
     log.info("Username is {}", username)
 
-    httpClient.cookies = Map[String, String]()
-
     var response = httpClient.get(loginUrl)
     log.trace("Login page:\n{}", response)
 
-    log.info("Cookies: {}", httpClient.cookies)
-
-    val galx = httpClient.cookies.find{case (k, v) => k=="GALX"}.getOrElse{
-      log.error("Can't find cookie, response:\n{}", response)
-      throw new RuntimeException("Can't find cookie")
-    }._2
+    val galx = httpClient.cookies.find(_.getName=="GALX").getOrElse{
+      throw new RuntimeException("Can't find cookie!")
+    }.getValue
 
     log.info("GALX = {}", galx)
 
-    response = httpClient.post(authUrl, Map(
-      "Email" -> username,
-      "Passwd" -> password,
-      "continue" -> tasksUrl,
-      "GALX" -> galx
-    ))
+    try {
+      response = httpClient.post(authUrl, Map(
+        "Email" -> username,
+        "Passwd" -> password,
+        "continue" -> tasksUrl,
+        "GALX" -> galx
+      ))
+    } catch {
+      case e:HttpResponseException if (e.getStatusCode==302) => {}
+    }
 
-    log.trace("Auth content:\n{}", response)
 
-    log.info("Cookies: {}", httpClient.cookies)
     if (httpClient.cookies.size < 2) {
       log.error("Login failed! Response:\n{}", response)
       throw new RuntimeException("Login failed")

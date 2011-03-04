@@ -2,94 +2,42 @@ package org.relgames.gtasksdaemon.utils
 
 import org.slf4j.LoggerFactory
 import javax.xml.parsers.{SAXParser, SAXParserFactory}
-import java.io.OutputStreamWriter
-import io.Source
-import java.net.{HttpURLConnection, URLConnection, URL, URLEncoder}
+import org.apache.http.message.BasicNameValuePair
+import org.apache.http.client.methods.{HttpPost, HttpGet}
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.protocol.HTTP
+import collection.JavaConversions._
+import org.apache.http.cookie.Cookie
+import org.apache.http.impl.client.{DefaultRedirectStrategy, DefaultHttpClient, BasicResponseHandler}
 
 trait Logging {
   val log = LoggerFactory.getLogger(this.getClass)
 }
 
-class HttpClient extends Logging{
-  private class EncodableMap(m: Map[String, String]) {
-    def urlEncode: String = {
-      for ((k, v) <- m) yield URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
-    }  mkString "&"
-  }
+class Http extends Logging{
+  private val httpClient = new DefaultHttpClient
+  httpClient.setRedirectStrategy(new DefaultRedirectStrategy());
 
-  private implicit def encodableMap(m: Map[String, String]): EncodableMap = new EncodableMap(m)
+  private val toStringResponseHandler = new BasicResponseHandler
 
-  var cookies = Map[String, String]()
-
-  def parseCookie(header: String): (String, String) = {
-    log.debug("Parsing {}", header)
-    val regexp = """([a-zA-Z0-9]+)=([^;]*);.*""".r
-    val regexp(key, value) = header
-    log.debug("Parsed {}={}", key, value)
-    (key, value)
-  }
-
-  def saveCookies(cookieHeaders: java.util.List[String]): Unit = {
-    if (cookieHeaders!=null) {
-      import collection.JavaConversions._
-      for (s <- cookieHeaders) {
-        cookies += parseCookie(s)
-      }
-    }
-  }
-
-  def saveCookiesFrom(connection: URLConnection): Unit = {
-    import collection.JavaConversions._
-
-    val x2 =  connection.getHeaderFields
-    val x = for ( p <- connection.getHeaderFields) yield (p._1 + ": " + p._2.mkString(", "))
-    log.debug("Headers:\n{}", x.mkString("\n"))
-
-    connection.getHeaderFields.filter{
-      case (name, values) if (name!=null) => name.equalsIgnoreCase("Set-Cookie") || name.equalsIgnoreCase("Set-Cookie2")
-      case _ => false
-    }.values.foreach(saveCookies)
-  }
-
-  def mkCookieHeader(m: Map[String, String]): String = {
-    m.map{ case (k, v) => k + "=" + v }.mkString("; ")
-  }
-
-  def addCookiesTo(connection: URLConnection): Unit = {
-    connection.setDoOutput(true)
-    val header = mkCookieHeader(cookies)
-    log.debug("Cookie request header: {}", header)
-    connection.addRequestProperty("Cookie", header)
-  }
+  def cookies(): Seq[Cookie] = httpClient.getCookieStore.getCookies
 
   def get(url: String): String = {
     log.debug("GET {}", url)
-    val connection = new URL(url).openConnection
-    addCookiesTo(connection)
-    saveCookiesFrom(connection)
 
-    Source.fromInputStream(connection.getInputStream).mkString
+
+    httpClient.execute(new HttpGet(url), toStringResponseHandler)
   }
 
   def post(url: String, params: Map[String, String]): String = {
     log.debug("POST {}", url)
 
-    val connection:HttpURLConnection = new URL(url).openConnection match{ case c:HttpURLConnection => c}
-    connection.setDoOutput(true)
-    connection.setRequestMethod("POST")
+    val loginParams = for ((k, v) <- params) yield new BasicNameValuePair(k, v)
 
-    val query = params.urlEncode
-    connection.setRequestProperty("Content-Length", query.length.toString)
-    addCookiesTo(connection)
+    val httpPost = new HttpPost(url)
+    httpPost.setEntity(new UrlEncodedFormEntity(loginParams.toList, HTTP.UTF_8))
 
-    val writer = new OutputStreamWriter(connection.getOutputStream)
-    writer.write(query)
-    writer.flush
-
-    saveCookiesFrom(connection)
-    val result = Source.fromInputStream(connection.getInputStream).mkString
-
-    result
+    httpClient.execute(httpPost, toStringResponseHandler)
   }
 }
 
