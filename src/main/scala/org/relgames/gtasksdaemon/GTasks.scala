@@ -43,8 +43,7 @@ class GTasks extends Logging {
 
 
     if (httpClient.cookies.size < 2) {
-      log.error("Login failed! Response:\n{}", response)
-      throw new RuntimeException("Login failed")
+      throw new RuntimeException("Login failed!")
     }
 
     log.info("Logged in")
