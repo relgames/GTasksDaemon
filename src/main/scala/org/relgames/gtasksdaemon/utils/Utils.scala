@@ -18,6 +18,7 @@ trait Logging {
 
 class Http extends Logging{
   private val httpClient = if (System.getProperty("com.google.appengine.runtime.environment")!=null) {
+    log.info("We are inside GAE, GAEConnectionManager is used")
     val t = new DefaultHttpClient(new GAEConnectionManager)
     t.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
     t
