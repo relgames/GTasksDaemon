@@ -8,10 +8,11 @@ object Main extends Logging {
   def main(args: Array[String]):Unit = {
     log.info("Start")
 
-
     gtasks.login()
-    val taskList = gtasks.tasks()
-    log.info("Tasks: {}", taskList)
+
+    log.info("Tasks: {}", gtasks.tasks())
+    gtasks.addTask("New test task " + System.currentTimeMillis)
+    log.info("Tasks: {}", gtasks.tasks())
 
     log.info("Done")
   }

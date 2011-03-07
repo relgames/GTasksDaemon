@@ -21,8 +21,7 @@ class GTasks extends Logging {
   def login():Unit = {
     log.info("Username is {}", username)
 
-    var response = httpClient.get(loginUrl)
-    log.trace("Login page:\n{}", response)
+    httpClient.get(loginUrl)
 
     val galx = httpClient.cookies.find(_.getName=="GALX").getOrElse{
       throw new RuntimeException("Can't find cookie!")
@@ -31,7 +30,7 @@ class GTasks extends Logging {
     log.info("GALX = {}", galx)
 
     try {
-      response = httpClient.post(authUrl, Map(
+      httpClient.post(authUrl, Map(
         "Email" -> username,
         "Passwd" -> password,
         "continue" -> tasksUrl,
@@ -49,9 +48,8 @@ class GTasks extends Logging {
     log.info("Logged in")
   }
 
-  def tasks():Seq[String] = {
+  def tasksXML() = {
     var tasksRaw = httpClient.get(tasksUrl)
-    log.trace("Tasks response:\n{}", tasksRaw)
 
     if (!tasksRaw.contains("<title>Tasks</title>")) {
       log.info("Page title is not Tasks, trying to login...")
@@ -65,13 +63,36 @@ class GTasks extends Logging {
       }
     }
 
-    val tasksXml = XML.withSAXParser(DTDFix.parser).loadString(tasksRaw)
-    val nodes = (tasksXml\\"td").filter(el => (el\"@class").text == "text").map(_.text).filter(_.length>0)
+    XML.withSAXParser(DTDFix.parser).loadString(tasksRaw)
+  }
 
+  def tasks():Seq[String] = {
+    val xml = tasksXML
+    val nodes = (xml\\"td").filter(el => (el\"@class").text == "text").map(_.text).filter(_.length>0)
     nodes
   }
 
-  def addTask():Unit = {
+  def addTask(task: String):Unit = {
+    val xml = tasksXML
+
+    val securityToken = ( (xml\\"input").filter(el => (el\"@name").text == "security_token")(0) \ "@value" ).text
+    log.info("Security token = {}", securityToken)
+
+    val pid = ( (xml\\"option").filter(el => (el\"@selected").text == "selected")(0) \ "@value" ).text
+    log.info("Pid = {}", pid)
+
+    try {
+      httpClient.post(tasksUrl, Map(
+        "actt" -> "create_tasks",
+        "numa" -> "1",
+        "pid" -> pid,
+        "security_token" -> securityToken,
+        "tkn1" -> task
+      ))
+    } catch {
+      case e:HttpResponseException if (e.getStatusCode==302) => {}
+    }
+
 
   }
 
