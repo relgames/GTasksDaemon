@@ -63,11 +63,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>com.google.appengine</groupId>
             <artifactId>appengine-api-1.0-sdk</artifactId>
             <version>1.4.2</version>
         </dependency>
+        -->
 
         <dependency>
             <groupId>junit</groupId>
@@ -81,7 +83,7 @@
         <profile>
             <id>jul</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <dependencies>
                 <dependency>
@@ -95,7 +97,7 @@
         <profile>
             <id>logback</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <dependencies>
                 <dependency>

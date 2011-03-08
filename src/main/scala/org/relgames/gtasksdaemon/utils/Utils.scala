@@ -8,23 +8,14 @@ import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.protocol.HTTP
 import collection.JavaConversions._
 import org.apache.http.cookie.Cookie
-import org.apache.http.impl.client.{DefaultRedirectStrategy, DefaultHttpClient, BasicResponseHandler}
-import org.esxx.js.protocol.GAEConnectionManager
-import org.apache.http.client.params.{ClientPNames, CookiePolicy}
+import org.apache.http.impl.client.{DefaultHttpClient, BasicResponseHandler}
 
 trait Logging {
   val log = LoggerFactory.getLogger(this.getClass)
 }
 
 object Http extends Logging{
-  private val httpClient = if (System.getProperty("com.google.appengine.runtime.environment")!=null) {
-    log.info("We are inside GAE, GAEConnectionManager is used")
-    val t = new DefaultHttpClient(new GAEConnectionManager)
-    t.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
-    t
-  } else {
-    new DefaultHttpClient
-  }
+  private val httpClient = new DefaultHttpClient
 
   private val toStringResponseHandler = new BasicResponseHandler
 
