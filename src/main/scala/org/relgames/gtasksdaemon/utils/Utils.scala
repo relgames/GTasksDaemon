@@ -16,7 +16,7 @@ trait Logging {
   val log = LoggerFactory.getLogger(this.getClass)
 }
 
-class Http extends Logging{
+object Http extends Logging{
   private val httpClient = if (System.getProperty("com.google.appengine.runtime.environment")!=null) {
     log.info("We are inside GAE, GAEConnectionManager is used")
     val t = new DefaultHttpClient(new GAEConnectionManager)

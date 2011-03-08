@@ -5,7 +5,7 @@ import utils.{Http, DTDFix, Logging}
 import xml.XML
 import org.apache.http.client.HttpResponseException
 
-class GTasks extends Logging {
+object GTasks extends Logging {
   val authProps = new Properties()
   authProps.load(this.getClass.getClassLoader.getResourceAsStream("auth.properties"))
 
@@ -16,21 +16,19 @@ class GTasks extends Logging {
   val authUrl = "https://www.google.com/accounts/ServiceLoginAuth"
   val tasksUrl = "https://mail.google.com/tasks/m"
 
-  val httpClient = new Http
-
   def login():Unit = {
     log.info("Username is {}", username)
 
-    httpClient.get(loginUrl)
+    Http.get(loginUrl)
 
-    val galx = httpClient.cookies.find(_.getName=="GALX").getOrElse{
+    val galx = Http.cookies.find(_.getName=="GALX").getOrElse{
       throw new RuntimeException("Can't find cookie!")
     }.getValue
 
     log.info("GALX = {}", galx)
 
     try {
-      httpClient.post(authUrl, Map(
+      Http.post(authUrl, Map(
         "Email" -> username,
         "Passwd" -> password,
         "continue" -> tasksUrl,
@@ -41,7 +39,7 @@ class GTasks extends Logging {
     }
 
 
-    if (httpClient.cookies.size < 2) {
+    if (Http.cookies.size < 2) {
       throw new RuntimeException("Login failed!")
     }
 
@@ -49,13 +47,13 @@ class GTasks extends Logging {
   }
 
   def tasksXML() = {
-    var tasksRaw = httpClient.get(tasksUrl)
+    var tasksRaw = Http.get(tasksUrl)
 
     if (!tasksRaw.contains("<title>Tasks</title>")) {
       log.info("Page title is not Tasks, trying to login...")
       login()
 
-      tasksRaw = httpClient.get(tasksUrl)
+      tasksRaw = Http.get(tasksUrl)
       log.trace("Tasks response:\n{}", tasksRaw)
       if (!tasksRaw.contains("<title>Tasks</title>")) {
         log.error("Logged in, but response is wrong:\n{}", tasksRaw)
@@ -82,7 +80,7 @@ class GTasks extends Logging {
     log.info("Pid = {}", pid)
 
     try {
-      httpClient.post(tasksUrl, Map(
+      Http.post(tasksUrl, Map(
         "actt" -> "create_tasks",
         "numa" -> "1",
         "pid" -> pid,
