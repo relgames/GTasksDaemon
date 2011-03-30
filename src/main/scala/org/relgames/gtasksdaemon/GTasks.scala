@@ -1,24 +1,21 @@
 package org.relgames.gtasksdaemon
 
 import java.util.Properties
-import utils.{Http, DTDFix, Logging}
+import utils.{Configuration, Http, DTDFix, Logging}
 import xml.XML
 import org.apache.http.client.HttpResponseException
 
 object GTasks extends Logging {
-  val authProps = new Properties()
-  authProps.load(this.getClass.getClassLoader.getResourceAsStream("auth.properties"))
+  val username = Configuration.getProperty("username")
+  val password = Configuration.getProperty("password")
 
-  val username = authProps.getProperty("username")
-  val password = authProps.getProperty("password")
+  log.info("Username is {}", username)
 
   val loginUrl = "https://www.google.com/accounts/ServiceLogin"
   val authUrl = "https://www.google.com/accounts/ServiceLoginAuth"
   val tasksUrl = "https://mail.google.com/tasks/m"
 
   def login():Unit = {
-    log.info("Username is {}", username)
-
     Http.get(loginUrl)
 
     val galx = Http.cookies.find(_.getName=="GALX").getOrElse{

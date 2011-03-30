@@ -9,6 +9,7 @@ import org.apache.http.protocol.HTTP
 import collection.JavaConversions._
 import org.apache.http.cookie.Cookie
 import org.apache.http.impl.client.{DefaultHttpClient, BasicResponseHandler}
+import java.util.Properties
 
 trait Logging {
   val log = LoggerFactory.getLogger(this.getClass)
@@ -54,5 +55,8 @@ object DTDFix {
     f.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
     f.newSAXParser()
   }
+}
 
+object Configuration extends Properties {
+  load(getClass.getClassLoader.getResourceAsStream("auth.properties"))
 }
