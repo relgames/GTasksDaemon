@@ -15,7 +15,7 @@ object GTasks extends Logging {
   val authUrl = "https://www.google.com/accounts/ServiceLoginAuth"
   val tasksUrl = "https://mail.google.com/tasks/m"
 
-  def login():Unit = {
+  def login() {
     Http.get(loginUrl)
 
     val galx = Http.cookies.find(_.getName=="GALX").getOrElse{
@@ -43,7 +43,7 @@ object GTasks extends Logging {
     log.info("Logged in")
   }
 
-  def tasksXML() = {
+  def tasksXML = {
     var tasksRaw = Http.get(tasksUrl)
 
     if (!tasksRaw.contains("<title>Tasks</title>")) {
@@ -61,13 +61,13 @@ object GTasks extends Logging {
     XML.withSAXParser(DTDFix.parser).loadString(tasksRaw)
   }
 
-  def tasks():Seq[String] = {
+  def tasks:Seq[String] = {
     val xml = tasksXML
     val nodes = (xml\\"td").filter(el => (el\"@class").text == "text").map(_.text).filter(_.length>0)
     nodes
   }
 
-  def addTask(task: String):Unit = {
+  def addTask(task: String) {
     val xml = tasksXML
 
     val securityToken = ( (xml\\"input").filter(el => (el\"@name").text == "security_token")(0) \ "@value" ).text
@@ -87,7 +87,6 @@ object GTasks extends Logging {
     } catch {
       case e:HttpResponseException if (e.getStatusCode==302) => {}
     }
-
 
   }
 

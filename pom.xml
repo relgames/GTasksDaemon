@@ -30,13 +30,25 @@
             <artifactId>joda-time</artifactId>
             <version>1.6.2</version>
         </dependency>
-
+<!--
+        <dependency>
+            <groupId>com.google.api.client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.4.1-beta</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api.services.tasks</groupId>
+            <artifactId>google-api-services-tasks-v1</artifactId>
+            <version>1.0.0-beta</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/google-api-services-tasks-v1-1.0.0-beta.jar</systemPath>
+        </dependency>
+-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
