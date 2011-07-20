@@ -25,7 +25,6 @@ object Http extends Logging{
   def get(url: String): String = {
     log.debug("GET {}", url)
 
-
     httpClient.execute(new HttpGet(url), toStringResponseHandler)
   }
 
