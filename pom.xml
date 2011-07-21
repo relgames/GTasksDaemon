@@ -18,6 +18,9 @@
         <logback.version>0.9.29</logback.version>
     </properties>
 
+    <scm>
+        <connection>scm:git:file://${project.basedir}</connection>
+    </scm>
 
     <dependencies>
         <dependency>
