@@ -1,4 +1,4 @@
-<web-app xmlns="http://java.sun.com/xml/ns/javaee" version="2.5">
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" version="3.0">
     <context-param>
         <param-name>quartz:config-file</param-name>
         <param-value>quartz.properties</param-value>
