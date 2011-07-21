@@ -136,13 +136,19 @@
                 <artifactId>maven-scala-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>scala-compile-first</id>
+                        <phase>process-resources</phase>
                         <goals>
+                            <goal>add-source</goal>
                             <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>scala-test-compile</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
                             <goal>testCompile</goal>
                         </goals>
-                        <configuration>
-                            <scalaVersion>${scala.version}</scalaVersion>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
