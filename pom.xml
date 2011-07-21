@@ -142,7 +142,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>org.relgames.gtasksdaemon.Main</mainClass>
+                            <mainClass>org.relgames.gtasksdaemon.MainService</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
