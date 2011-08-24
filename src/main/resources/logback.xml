@@ -1,14 +1,16 @@
 <configuration>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>gtasksdaemon.log</file>
+        <file>${catalina.base}/logs/gtasksdaemon.log</file>
         <append>true</append>
         <encoder>
             <pattern>%d [%thread] %-5level %logger{35} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <logger name="org.relgames" level="debug"/>
+
+    <root level="info">
         <appender-ref ref="FILE"/>
     </root>
 </configuration>

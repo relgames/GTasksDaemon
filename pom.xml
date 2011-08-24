@@ -127,6 +127,38 @@
                 </dependency>
             </dependencies>
         </profile>
+
+        <profile>
+            <id>jelastic</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <pluginRepositories>
+                <pluginRepository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>central</id>
+                    <name>plugins-release</name>
+                    <url>http://maven.jelastic.com/plugins-release</url>
+                </pluginRepository>
+            </pluginRepositories>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.jelastic</groupId>
+                        <artifactId>jelastic-maven-plugin</artifactId>
+                        <version>1.3</version>
+                        <configuration>
+                            <email>${jelastic.username}</email>
+                            <password>${jelastic.password}</password>
+                            <context>gtasksdaemon</context>
+                            <environment>services</environment>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
