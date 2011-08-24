@@ -8,7 +8,7 @@
 
     <name>Google Tasks Daemon</name>
 
-    <url>http://relgames.org</url>
+    <url>http://services.jelastic.org/gtasksdaemon</url>
 
     <packaging>war</packaging>
 
@@ -24,26 +24,18 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>1.6.2</version>
         </dependency>
-        <!--
-                <dependency>
-                    <groupId>com.google.api.client</groupId>
-                    <artifactId>google-api-client</artifactId>
-                    <version>1.4.1-beta</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.google.api.services.tasks</groupId>
-                    <artifactId>google-api-services-tasks-v1</artifactId>
-                    <version>1.0.0-beta</version>
-                    <scope>system</scope>
-                    <systemPath>${project.basedir}/lib/google-api-services-tasks-v1-1.0.0-beta.jar</systemPath>
-                </dependency>
-        -->
 
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
@@ -62,22 +54,22 @@
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
             <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>99.0-does-not-exist</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging-api</artifactId>
-            <version>99.0-does-not-exist</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -95,39 +87,6 @@
     </dependencies>
 
     <profiles>
-        <profile>
-            <id>jul</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                    <version>${slf4j.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-
-        <profile>
-            <id>logback</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                    <version>${logback.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                    <version>${logback.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-
         <profile>
             <id>jelastic</id>
             <activation>
