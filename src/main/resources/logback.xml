@@ -1,7 +1,7 @@
 <configuration>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${catalina.base}/logs/gtasksdaemon.log</file>
+        <file>${jetty.home}/logs/gtasksdaemon.log</file>
         <append>true</append>
         <encoder>
             <pattern>%d [%thread] %-5level %logger{35} - %msg%n</pattern>
