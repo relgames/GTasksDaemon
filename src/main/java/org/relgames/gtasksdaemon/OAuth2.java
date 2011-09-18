@@ -40,7 +40,7 @@ public class OAuth2 {
         System.out.println(authorizationUrl);
     }
 
-    private static final String CODE = "4/CCYTP9PC6BcrdzJWBSq89PrN0sj2";
+    private static final String CODE = "4/LZX_2hkgE5C6XxLLDBS0eR15YVYE";
 
     private static final Logger log = LoggerFactory.getLogger(OAuth2.class);
 
@@ -55,13 +55,7 @@ public class OAuth2 {
 
         log.debug("OAuth2");
 
-/*
-        requestCode();
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("What is the authorization code?");
-        String code = in.readLine();
-*/
+        //requestCode(); System.exit(0);
 
 
         AccessTokenResponse response = new GoogleAccessTokenRequest.GoogleAuthorizationCodeGrant(

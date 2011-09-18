@@ -2,6 +2,8 @@ package org.relgames.gtasksdaemon
 
 import utils.Logging
 object MainService extends Logging {
+  Jul.replaceWithSLF4J()
+
   def process() {
     log.info("Start")
 
@@ -21,7 +23,11 @@ object MainService extends Logging {
   }
 
   def main(args: Array[String]) {
-    process()
+
+
+    //process()
+    log.info("Tasks: {}", GTasks.tasks)
+
   }
 
 }

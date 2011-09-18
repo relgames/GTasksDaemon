@@ -1,93 +1,59 @@
 package org.relgames.gtasksdaemon
 
-import java.util.Properties
-import utils.{Configuration, Http, DTDFix, Logging}
-import xml.XML
-import org.apache.http.client.HttpResponseException
+import utils.{Configuration, Logging}
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.jackson.JacksonFactory
+import com.google.api.client.googleapis.auth.oauth2.draft10.{GoogleAccessProtectedResource, GoogleAccessTokenRequest}
+import com.google.api.services.tasks.Tasks
+import com.google.api.services.tasks.model.Task
 
 object GTasks extends Logging {
-  val username = Configuration.getProperty("username")
-  val password = Configuration.getProperty("password")
+  val clientId = Configuration.getProperty("client.id")
+  val clientSecret = Configuration.getProperty("client.secret")
 
-  log.info("Username is {}", username)
+  val token = Configuration.getProperty("token")
 
-  val loginUrl = "https://www.google.com/accounts/ServiceLogin"
-  val authUrl = "https://www.google.com/accounts/ServiceLoginAuth"
-  val tasksUrl = "https://mail.google.com/tasks/m"
+  val SCOPE = "https://www.googleapis.com/auth/tasks"
+  val REDIRECT_URL = "urn:ietf:wg:oauth:2.0:oob"
+  val TRANSPORT = new NetHttpTransport
+  val JSON_FACTORY = new JacksonFactory
+
+  var service: Tasks = null
 
   def login() {
-    Http.get(loginUrl)
-
-    val galx = Http.cookies.find(_.getName=="GALX").getOrElse{
-      throw new RuntimeException("Can't find cookie!")
-    }.getValue
-
-    log.info("GALX = {}", galx)
-
-    try {
-      Http.post(authUrl, Map(
-        "Email" -> username,
-        "Passwd" -> password,
-        "continue" -> tasksUrl,
-        "GALX" -> galx
-      ))
-    } catch {
-      case e:HttpResponseException if (e.getStatusCode==302) => {}
-    }
+    val response = new GoogleAccessTokenRequest.GoogleAuthorizationCodeGrant(
+      TRANSPORT,
+      JSON_FACTORY,
+      clientId,
+      clientSecret,
+      token,
+      REDIRECT_URL).execute
 
 
-    if (Http.cookies.size < 2) {
-      throw new RuntimeException("Login failed!")
-    }
+    val accessProtectedResource = new GoogleAccessProtectedResource(
+      response.accessToken,
+      TRANSPORT,
+      JSON_FACTORY,
+      clientId,
+      clientSecret,
+      response.refreshToken)
+
+    service = new Tasks(TRANSPORT, accessProtectedResource, JSON_FACTORY)
 
     log.info("Logged in")
   }
 
-  def tasksXML = {
-    var tasksRaw = Http.get(tasksUrl)
+  def tasks: Seq[String] = {
+    if (service==null) login()
 
-    if (!tasksRaw.contains("<title>Tasks</title>")) {
-      log.info("Page title is not Tasks, trying to login...")
-      login()
+    val tasks = service.tasks.list("@default").execute()
 
-      tasksRaw = Http.get(tasksUrl)
-      log.trace("Tasks response:\n{}", tasksRaw)
-      if (!tasksRaw.contains("<title>Tasks</title>")) {
-        log.error("Logged in, but response is wrong:\n{}", tasksRaw)
-        throw new RuntimeException("Logged in, but response is wrong")
-      }
-    }
-
-    XML.withSAXParser(DTDFix.parser).loadString(tasksRaw)
-  }
-
-  def tasks:Seq[String] = {
-    val xml = tasksXML
-    val nodes = (xml\\"td").filter(el => (el\"@class").text == "text").map(_.text).filter(_.length>0)
-    nodes
+    import scala.collection.JavaConversions._
+    tasks.getItems.map(_.getTitle)
   }
 
   def addTask(task: String) {
-    val xml = tasksXML
-
-    val securityToken = ( (xml\\"input").filter(el => (el\"@name").text == "security_token")(0) \ "@value" ).text
-    log.info("Security token = {}", securityToken)
-
-    val pid = ( (xml\\"option").filter(el => (el\"@selected").text == "selected")(0) \ "@value" ).text
-    log.info("Pid = {}", pid)
-
-    try {
-      Http.post(tasksUrl, Map(
-        "actt" -> "create_tasks",
-        "numa" -> "1",
-        "pid" -> pid,
-        "security_token" -> securityToken,
-        "tkn1" -> task
-      ))
-    } catch {
-      case e:HttpResponseException if (e.getStatusCode==302) => {}
-    }
-
+    if (service==null) login()
   }
 
 }
