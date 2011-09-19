@@ -7,6 +7,8 @@ object MainService extends Logging {
   def process() {
     log.info("Start")
 
+    GoogleOAuth2.login()
+
     val gTasks = GTasks.tasks
     val calendarTasks = GCalendar.tasksForToday
     log.info("Current tasks: {}", gTasks)
@@ -23,6 +25,9 @@ object MainService extends Logging {
   }
 
   def main(args: Array[String]) {
+    GoogleOAuth2.login()
+
+    //log.info("Calendar tasks: {}", GCalendar.tasksForToday)
     //log.info("Tasks: {}", GTasks.tasks)
     process()
   }

@@ -3,7 +3,7 @@ package org.relgames.gtasksdaemon
 import utils.{Configuration, Logging}
 import xml.XML
 import org.joda.time.{Seconds, DateTime, DateMidnight}
-import java.net.{URLEncoder, URL}
+import java.net.URLEncoder
 import org.joda.time.format.DateTimeFormat
 
 object GCalendar extends Logging {
@@ -20,9 +20,11 @@ object GCalendar extends Logging {
       val d2 = new DateTime(d1).plusDays(1).minus(Seconds.ONE);
       log.info("d1: {}; d2: {}", d1, d2);
 
-      val urlForToday = calendarUrl + "?" + "start-min=" + enc(dtf.print(d1)) + "&start-max=" + enc(dtf.print(d2));
+      val urlForToday = calendarUrl + "?" + "start-min=" + enc(dtf.print(d1)) + "&start-max=" + enc(dtf.print(d2))
       log.info("Requesting URL: {}", urlForToday)
-      val xml = XML.load(new URL(urlForToday))
+
+
+      val xml = XML.load(GoogleOAuth2.get(urlForToday))
       log.debug("xml: {}", xml)
       (xml \ "entry" \ "title").map(_.text)
     }
