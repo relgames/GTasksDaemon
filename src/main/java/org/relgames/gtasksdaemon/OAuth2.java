@@ -59,14 +59,7 @@ public class OAuth2 {
     }
 
     public static void main(String[] args) throws IOException {
-        java.util.logging.Logger rootLogger = LogManager.getLogManager().getLogger("");
-        rootLogger.setLevel(Level.ALL);
-        Handler[] handlers = rootLogger.getHandlers();
-        for (Handler handler : handlers) {
-            rootLogger.removeHandler(handler);
-        }
-        SLF4JBridgeHandler.install();
-
+        Jul.replaceWithSLF4J();
         requestCode();
     }
 }
