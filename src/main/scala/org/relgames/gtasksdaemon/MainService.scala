@@ -23,11 +23,8 @@ object MainService extends Logging {
   }
 
   def main(args: Array[String]) {
-
-
-    //process()
-    log.info("Tasks: {}", GTasks.tasks)
-
+    //log.info("Tasks: {}", GTasks.tasks)
+    process()
   }
 
 }

@@ -11,7 +11,7 @@ object GTasks extends Logging {
   val clientId = Configuration.getProperty("client.id")
   val clientSecret = Configuration.getProperty("client.secret")
 
-  val token = Configuration.getProperty("token")
+  val refreshToken = Configuration.getProperty("refresh.token")
 
   val SCOPE = "https://www.googleapis.com/auth/tasks"
   val REDIRECT_URL = "urn:ietf:wg:oauth:2.0:oob"
@@ -21,22 +21,14 @@ object GTasks extends Logging {
   var service: Tasks = null
 
   def login() {
-    val response = new GoogleAccessTokenRequest.GoogleAuthorizationCodeGrant(
-      TRANSPORT,
-      JSON_FACTORY,
-      clientId,
-      clientSecret,
-      token,
-      REDIRECT_URL).execute
-
-
     val accessProtectedResource = new GoogleAccessProtectedResource(
-      response.accessToken,
+      "",
       TRANSPORT,
       JSON_FACTORY,
       clientId,
       clientSecret,
-      response.refreshToken)
+      refreshToken)
+    accessProtectedResource.refreshToken()
 
     service = new Tasks(TRANSPORT, accessProtectedResource, JSON_FACTORY)
 
@@ -52,8 +44,12 @@ object GTasks extends Logging {
     tasks.getItems.map(_.getTitle)
   }
 
-  def addTask(task: String) {
+  def addTask(taskTitle: String) {
     if (service==null) login()
+
+    val task =  new Task
+    task.setTitle(taskTitle)
+    service.tasks.insert("@default", task).execute()
   }
 
 }
