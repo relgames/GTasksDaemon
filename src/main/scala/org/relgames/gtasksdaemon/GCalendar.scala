@@ -1,13 +1,13 @@
 package org.relgames.gtasksdaemon
 
-import utils.{Configuration, Logging}
+import utils.{Logging}
 import xml.XML
 import org.joda.time.{Seconds, DateTime, DateMidnight}
 import java.net.URLEncoder
 import org.joda.time.format.DateTimeFormat
 
 object GCalendar extends Logging {
-  protected val calendars = (for (i <- 1 to 10) yield Configuration.getProperty("calc"+i)).filter(_ != null)
+  protected val calendars = (for (i <- 1 to 10) yield GoogleAPI.config.getProperty("calc"+i)).filter(_ != null)
 
   log.info("calendars: {}", calendars)
 
@@ -24,7 +24,7 @@ object GCalendar extends Logging {
       log.info("Requesting URL: {}", urlForToday)
 
 
-      val xml = XML.load(GoogleOAuth2.get(urlForToday))
+      val xml = XML.load(GoogleAPI.get(urlForToday))
       log.debug("xml: {}", xml)
       (xml \ "entry" \ "title").map(_.text)
     }
