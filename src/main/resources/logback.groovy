@@ -6,16 +6,18 @@ import static ch.qos.logback.classic.Level.DEBUG
 import static ch.qos.logback.classic.Level.INFO
 import ch.qos.logback.core.ConsoleAppender
 
-path = null
-if (System.getProperty("catalina.home") != null) {
-    path = System.getProperty("catalina.home");
-} else if (System.getProperty("jetty.home") != null) {
-    path = System.getProperty("jetty.home");
+String path = null
+if (System.getProperty("catalina.base") != null) {
+    path = System.getProperty("catalina.base") + "/logs";
+} else if (System.getProperty("jetty.logs") != null) {
+    path = System.getProperty("jetty.logs");
 }
+
+System.out.println("path=" + path)
 
 if (path != null) {
     appender("FILE", FileAppender) {
-        file = "${path}/logs/gtasksdaemon.log"
+        file = path + "/gtasksdaemon.log"
         append = true
         encoder(PatternLayoutEncoder) {
             pattern = "%d [%thread] %-5level %logger{35} - %msg%n"
