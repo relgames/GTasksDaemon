@@ -15,8 +15,8 @@ public class QuartzJob implements Job {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private static final int TRY_COUNT = 5;
-    private static final int SLEEP_TIME = 60000;
+    private static final int TRY_COUNT = 20;
+    private static final int SLEEP_TIME = 10000;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {

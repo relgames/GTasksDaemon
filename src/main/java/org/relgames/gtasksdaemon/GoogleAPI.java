@@ -7,12 +7,12 @@ import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAccessTokenReq
 import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAuthorizationRequestUrl;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.http.apache.ApacheHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.tasks.Tasks;
 import com.google.api.services.tasks.model.Task;
+import org.apache.http.client.params.ClientPNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,6 @@ public class GoogleAPI {
     private static final Logger log = LoggerFactory.getLogger(GoogleAPI.class);
 
     public static final Properties config;
-
     static {
         config  =  new Properties();
         try {
@@ -47,7 +46,11 @@ public class GoogleAPI {
     private static final String SCOPE = config.getProperty("scope");
     private static final String REDIRECT_URL = "urn:ietf:wg:oauth:2.0:oob";
 
-    private static final HttpTransport TRANSPORT = new NetHttpTransport();
+    private static final ApacheHttpTransport TRANSPORT = new ApacheHttpTransport();
+    static {
+        TRANSPORT.getHttpClient().getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, true);
+    }
+
     private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
     private static final AccessProtectedResource access = new GoogleAccessProtectedResource(
