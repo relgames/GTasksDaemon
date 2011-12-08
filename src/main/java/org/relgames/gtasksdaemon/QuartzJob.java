@@ -14,7 +14,9 @@ public class QuartzJob implements Job {
     public static DateTime lastExecution;
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+
     private static final int TRY_COUNT = 5;
+    private static final int SLEEP_TIME = 60000;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -29,8 +31,16 @@ public class QuartzJob implements Job {
             } catch (Exception e) {
                 log.error("Exception", e);
                 if (count >= TRY_COUNT) {
-                    log.warn("Reached TRY_COUNT, exiting");
+                    log.warn("Reached TRY_COUNT=" + TRY_COUNT + ", exiting");
                     break;
+                } else {
+                    log.info("Sleeping for " + SLEEP_TIME + " ms");
+                    try {
+                        Thread.sleep(SLEEP_TIME);
+                    } catch (InterruptedException e1) {
+                        log.error("Exception during sleep, exiting", e1);
+                        return;
+                    }
                 }
             }
         }

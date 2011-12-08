@@ -6,6 +6,15 @@
 
 	<display-name>Google Tasks Daemon</display-name>
 
+    <servlet>
+        <servlet-name>ExecutionServlet</servlet-name>
+        <servlet-class>org.relgames.gtasksdaemon.ExecutionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExecutionServlet</servlet-name>
+        <url-pattern>/execute</url-pattern>
+    </servlet-mapping>
+
 	<servlet>
 		<servlet-name>DaemonServlet</servlet-name>
 		<servlet-class>org.relgames.gtasksdaemon.DaemonServlet</servlet-class>

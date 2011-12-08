@@ -1,7 +1,8 @@
 package org.relgames.gtasksdaemon;
 
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
+import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -12,15 +13,20 @@ import java.io.IOException;
 /**
  * @author Oleg Poleshuk
  */
-public class DaemonServlet extends HttpServlet {
+public class ExecutionServlet extends HttpServlet {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("Current time: " + new DateTime().toString(DateTimeFormat.shortDateTime()) + "\n");
-        if (QuartzJob.lastExecution!=null) {
-            response.getWriter().write("Last execution: " + QuartzJob.lastExecution.toString(DateTimeFormat.shortDateTime()) + "\n");
-        } else {
-            response.getWriter().write("Not executed yet");
+
+        try {
+            new QuartzJob().execute(null);
+        } catch (JobExecutionException e) {
+            throw new ServletException("Can't execute QuartzJob", e);
         }
+
+        response.getWriter().write("Done!");
     }
 }
